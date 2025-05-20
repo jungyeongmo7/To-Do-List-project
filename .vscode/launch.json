@@ -32,7 +32,7 @@
             "request": "launch",
             "mainClass": "server",
             "projectName": "To-Do-List-project_3d7a83d7"
-        }
+        },
         {
             "type": "java",
             "name": "Launch Client",
