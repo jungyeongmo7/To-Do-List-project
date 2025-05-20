@@ -1,79 +1,161 @@
-//GUI를 만들기 위한 도구를 부르는 코드
-import javax.swing.*; //버튼,입력창
-import java.awt.*; //레이아웃이나 크기조절(그래픽적인 기능)
 
-public class Try1 extends JFrame { //클래스 (화면창)
-//화면에 보일것들 선언
-private DefaultListModel<String> listModel; //리스트에 들어갈 할 일 목록을 저장할 공간
-private JList<String> todoList; //할 일 목록을 화면에 보여주는 리스트
-private JTextField inputField; //할 일을 입력하는 텍스트 칸
-private JButton addButton, editButton, deleteButton; //각각 "추가", "수정", "삭제" 버튼
-//화면 창을 만들고 꾸미는 역할,Try1을 실행하면 여기 코드가 작동
-public Try1() {
-	//창의 제목을 "To-Do List"로
-    setTitle("To-Do List");
-    //창의 크기를 가로 400, 세로 300 픽셀로
-    setSize(400, 300);
-    //창을 닫으면 프로그램이 완전히 종료되게 만드는 코드(안 쓰면 창만 닫히고 백그라운드에 남음)
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //창 안의 구조를 정하는 부분, BorderLayout은 화면을 5개 구역(북/남/동/서/중앙)으로 나눌 수 있게 해줌
-    setLayout(new BorderLayout());
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 
-    // 입력 필드와 버튼들, 각 요소들을 실제로
-    inputField = new JTextField(15); //가로 길이 15짜리 입력칸
-    addButton = new JButton("추가");
-    editButton = new JButton("수정");
-    deleteButton = new JButton("삭제"); //각 버튼에는 "추가", "수정", "삭제"라는 이름이 붙음
-    deleteButton.setPreferredSize(new Dimension(70, 25)); // ✅ 버튼 크기 지정, 삭제 버튼 크기를 약간 조절해서 더 잘 보이게
+public class Try1 extends JFrame {
+    private DefaultTableModel tableModel;
+    private JTable table;
+    private JTextField inputField;
+    private JComboBox<String> priorityBox;
+    private JButton addButton, editButton, deleteButton;
+    private final String FILE_NAME = "todo_table.txt";
 
-    //버튼과 입력창을 가로로 나열할 수 있는 패널(작은 영역), FlowLayout은 왼쪽 → 오른쪽으로 자연스럽게 배치되는 방식
-    JPanel inputPanel = new JPanel(new FlowLayout());
-    //위에서 만든 입력칸과 버튼들을 inputPanel에, 순서대로 입력칸 → 추가 → 수정 → 삭제가 화면 상단에
-    inputPanel.add(inputField);
-    inputPanel.add(addButton);
-    inputPanel.add(editButton);
-    inputPanel.add(deleteButton);
-    //위에서 만든 inputPanel을 화면 상단(NORTH)에 배치
-    add(inputPanel, BorderLayout.NORTH);
+    public Try1() {
+        setTitle("To-Do List with Priority and Completion");
+        setSize(600, 350);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-    // 할 일을 화면에 보이게 하는 리스트
-    listModel = new DefaultListModel<>(); //할 일을 담는 데이터 공간
-    todoList = new JList<>(listModel); //실제로 보여주는 리스트
-    todoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //한 번에 하나만 선택할 수 있게 <-여러ㅓ개 선택도 괜찮을지도..
-    //추가 기능, todoList를 스크롤 가능한 형태로 만들어서, 화면 중앙(CENTER)에 배치(할 일이 많아지면 스크롤해서 볼 수 있음)
-    add(new JScrollPane(todoList), BorderLayout.CENTER);
+        inputField = new JTextField(12);
+        priorityBox = new JComboBox<>(new String[]{"높음", "중간", "낮음"});
+        addButton = new JButton("추가");
+        editButton = new JButton("수정");
+        deleteButton = new JButton("삭제");
 
-    // "추가" 버튼을 눌렀을 때->입력칸에 텍스트가 있으면 리스트에 추가하고, 입력칸을 비움
-    addButton.addActionListener(e -> {
-        String task = inputField.getText().trim();
-        if (!task.isEmpty()) {
-            listModel.addElement(task);
-            inputField.setText("");
+        JPanel inputPanel = new JPanel(new FlowLayout());
+        inputPanel.add(new JLabel("할 일:"));
+        inputPanel.add(inputField);
+        inputPanel.add(new JLabel("우선순위:"));
+        inputPanel.add(priorityBox);
+        inputPanel.add(addButton);
+        inputPanel.add(editButton);
+        inputPanel.add(deleteButton);
+        add(inputPanel, BorderLayout.NORTH);
+
+        String[] columnNames = {"완료", "할 일", "중요도"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return true; // 모든 셀 직접 수정 가능
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 0) return Boolean.class; // 완료 체크박스
+                return String.class;
+            }
+        };
+
+        table = new JTable(tableModel);
+        table.setDefaultRenderer(Object.class, new PriorityTableCellRenderer());
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // ✅ 중요도 열만 콤보박스로 제한
+        String[] priorities = {"높음", "중간", "낮음"};
+        JComboBox<String> comboBox = new JComboBox<>(priorities);
+        TableColumn priorityColumn = table.getColumnModel().getColumn(2);
+        priorityColumn.setCellEditor(new DefaultCellEditor(comboBox));
+
+        loadTableFromFile();
+
+        addButton.addActionListener(e -> {
+            String task = inputField.getText().trim();
+            String priority = (String) priorityBox.getSelectedItem();
+            if (!task.isEmpty()) {
+                tableModel.addRow(new Object[]{false, task, priority});
+                inputField.setText("");
+                saveTableToFile();
+            }
+        });
+
+        editButton.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row != -1) {
+                String task = inputField.getText().trim();
+                String priority = (String) priorityBox.getSelectedItem();
+                if (!task.isEmpty()) {
+                    tableModel.setValueAt(task, row, 1);
+                    tableModel.setValueAt(priority, row, 2);
+                    inputField.setText("");
+                    saveTableToFile();
+                }
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row != -1) {
+                tableModel.removeRow(row);
+                saveTableToFile();
+            }
+        });
+
+        tableModel.addTableModelListener(e -> saveTableToFile());
+
+        setVisible(true);
+    }
+
+    private void saveTableToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                Boolean done = (Boolean) tableModel.getValueAt(i, 0);
+                String task = tableModel.getValueAt(i, 1).toString();
+                String priority = tableModel.getValueAt(i, 2).toString();
+                writer.write(done + "::" + task + "::" + priority);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    });
+    }
 
-    // 수정 기능 "수정" 버튼을 눌렀을 때->리스트에서 선택된 항목이 있다면, 입력칸의 내용으로 수정
-    editButton.addActionListener(e -> {
-        int selectedIndex = todoList.getSelectedIndex();
-        String newTask = inputField.getText().trim();
-        if (selectedIndex != -1 && !newTask.isEmpty()) {
-            listModel.set(selectedIndex, newTask);
-            inputField.setText("");
+    private void loadTableFromFile() {
+        File file = new File(FILE_NAME);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("::");
+                    if (parts.length == 3) {
+                        Boolean done = Boolean.parseBoolean(parts[0]);
+                        tableModel.addRow(new Object[]{done, parts[1], parts[2]});
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-    });
+    }
 
-    // 삭제 기능 "삭제"버튼 -> 선택된 항목이 있다면 삭제
-    deleteButton.addActionListener(e -> {
-        int selectedIndex = todoList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            listModel.remove(selectedIndex);
+    private static class PriorityTableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (column == 2) {
+                String priority = value.toString();
+                if (priority.equals("높음")) {
+                    c.setForeground(Color.RED);
+                } else if (priority.equals("중간")) {
+                    c.setForeground(new Color(255, 165, 0));
+                } else if (priority.equals("낮음")) {
+                    c.setForeground(new Color(0, 128, 0));
+                } else {
+                    c.setForeground(Color.BLACK);
+                }
+            } else {
+                c.setForeground(Color.BLACK);
+            }
+            return c;
         }
-    });
-   //모든 준비가 끝났으니 화면을 보이게 해주는 코드
-    setVisible(true);
-}
-//Try1이라는 창을 띄우는 코드
-public static void main(String[] args) {
-SwingUtilities.invokeLater(Try1::new);
-}
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Try1::new);
+    }
 }

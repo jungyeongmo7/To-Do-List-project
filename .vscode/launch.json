@@ -1,0 +1,50 @@
+{
+    // IntelliSense를 사용하여 가능한 특성에 대해 알아보세요.
+    // 기존 특성에 대한 설명을 보려면 가리킵니다.
+    // 자세한 내용을 보려면 https://go.microsoft.com/fwlink/?linkid=830387을(를) 방문하세요.
+    "version": "0.2.0",
+    "configurations": [
+
+
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Try1",
+            "request": "launch",
+            "mainClass": "Try1",
+            "projectName": "To-Do-List-project_3d7a83d7"
+        },
+        {
+            "type": "java",
+            "name": "client",
+            "request": "launch",
+            "mainClass": "client",
+            "projectName": "To-Do-List-project_3d7a83d7"
+        },
+        {
+            "type": "java",
+            "name": "server",
+            "request": "launch",
+            "mainClass": "server",
+            "projectName": "To-Do-List-project_3d7a83d7"
+        }
+        {
+            "type": "java",
+            "name": "Launch Client",
+            "request":"launch",
+            "mainClass":"Client",
+            "vmArgs": "--module-path C:/javafx/lib --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "Launch Server",
+            "request": "launch",
+            "mainClass": "Server"
+        }
+    ]
+}
