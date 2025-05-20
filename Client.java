@@ -18,7 +18,7 @@ public class Client extends Application {
 
         VBox root = new VBox(10, outputArea, inputField, sendButton);
         Scene scene = new Scene(root, 300, 300);
-        primaryStage.setTitle("가위바위보 게임임");
+        primaryStage.setTitle("가위바위보 게임");
         primaryStage.setScene(scene);
         primaryStage.show();
 
