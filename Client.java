@@ -18,12 +18,12 @@ public class Client extends Application {
 
         VBox root = new VBox(10, outputArea, inputField, sendButton);
         Scene scene = new Scene(root, 300, 300);
-        primaryStage.setTitle("가위바위보 클라이언트");
+        primaryStage.setTitle("가위바위보 게임임");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         sendButton.setOnAction(event -> {
-            String playerName = "Player1";
+            String playerName = "유저1";
             String input = inputField.getText();
 
             try (Socket socket = new Socket(SERVER_ADDRESS, PORT);
