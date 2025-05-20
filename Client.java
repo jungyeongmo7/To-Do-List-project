@@ -1,25 +1,21 @@
-import java.io.*;
-import java.net.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.io.*;
+import java.net.*;
 
 public class Client extends Application {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int PORT = 12345;
-
-    public static void main(String[] args) {
-        launch(args);
-    }
 
     @Override
     public void start(Stage primaryStage) {
         TextArea outputArea = new TextArea();
         TextField inputField = new TextField();
         Button sendButton = new Button("전송");
-        
+
         VBox root = new VBox(10, outputArea, inputField, sendButton);
         Scene scene = new Scene(root, 300, 300);
         primaryStage.setTitle("가위바위보 클라이언트");
@@ -44,5 +40,8 @@ public class Client extends Application {
             }
         });
     }
-}
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
