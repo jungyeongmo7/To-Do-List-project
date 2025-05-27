@@ -4,8 +4,13 @@
     // 자세한 내용을 보려면 https://go.microsoft.com/fwlink/?linkid=830387을(를) 방문하세요.
     "version": "0.2.0",
     "configurations": [
-
-
+        {
+            "type": "java",
+            "name": "practice",
+            "request": "launch",
+            "mainClass": "practice",
+            "projectName": "To-Do-List-project_3d7a83d7"
+        },
         {
             "type": "java",
             "name": "Current File",
@@ -36,8 +41,8 @@
         {
             "type": "java",
             "name": "Launch Client",
-            "request":"launch",
-            "mainClass":"Client",
+            "request": "launch",
+            "mainClass": "Client",
             "vmArgs": "--module-path C:/javafx/javafx-sdk-24.0.1/lib --add-modules javafx.controls,javafx.fxml"
         },
         {
